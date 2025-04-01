@@ -16,12 +16,6 @@ defmodule TestDemos.ResponseParserTest do
   #   end
 
   describe "parse_response/1" do
-    # setup_all do
-    #   response_as_string = File.read!("test/support/fixtures/weather_api_response.json")
-    #   response_as_map = Jason.decode!(response_as_string)
-    #   %{weather_data: response_as_map}
-    # end
-
     for {condition, ids} <- [@thunderstorm_ids, @drizzle_ids, @rain_ids] do
       test "sucess: recognizes #{condition} as a rainy condition" do
         now_unix = DateTime.utc_now() |> DateTime.to_unix()
@@ -33,19 +27,23 @@ defmodule TestDemos.ResponseParserTest do
                    ResponseParser.parse_response(%{"list" => [record]})
 
           assert weather_struct.rain? == true,
-            "Expected weather id (#{id}) to be a rain condition"
+                 "Expected weather id (#{id}) to be a rain condition"
         end
       end
     end
 
-    test "success: accepts a valid payload, returns a list of structs", %{
-      weather_data: weather_data
-    } do
-      assert {:ok, parsed_response} = ResponseParser.parse_response(weather_data)
+    test "success: returns rain?: false for any other id codes" do
+      {_, thunderstorm_ids} = @thunderstorm_ids
+      {_, drizzle_ids} = @drizzle_ids
+      {_, rain_ids} = @rain_ids
+      all_rain_ids = thunderstorm_ids ++ drizzle_ids ++ rain_ids
+      now_unix = DateTime.utc_now() |> DateTime.to_unix()
 
-      for weather_record <- parsed_response do
-        assert match?(%Weather{datetime: %DateTime{}, rain?: _rain}, weather_record)
-        assert is_boolean(weather_record.rain?)
+      for id <- 100..900, id not in all_rain_ids do
+        record = %{"dt" => now_unix, "weather" => [%{"id" => id}]}
+        assert {:ok, [weather_struct]} = ResponseParser.parse_response(%{"list" => [record]})
+
+        refute weather_struct.rain?, "Expected weather id (#{id}) to not be a rain condition"
       end
     end
   end
@@ -65,6 +63,23 @@ defmodule TestDemos.ResponseParserTest do
 
   # describe "setup scenarios" do
   #   setup [:create_organization, :with_admin, :with_authenticated_user]
+  # end
+
+  # setup_all do
+  #   response_as_string = File.read!("test/support/fixtures/weather_api_response.json")
+  #   response_as_map = Jason.decode!(response_as_string)
+  #   %{weather_data: response_as_map}
+  # end
+
+  # test "success: accepts a valid payload, returns a list of structs", %{
+  #   weather_data: weather_data
+  # } do
+  #   assert {:ok, parsed_response} = ResponseParser.parse_response(weather_data)
+
+  #   for weather_record <- parsed_response do
+  #     assert match?(%Weather{datetime: %DateTime{}, rain?: _rain}, weather_record)
+  #     assert is_boolean(weather_record.rain?)
+  #   end
   # end
 
   # def with_authenticated_user(context) do
