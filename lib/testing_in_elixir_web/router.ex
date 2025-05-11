@@ -18,6 +18,7 @@ defmodule TestingInElixirWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    post "/perform_action", PerformActionController, :perform_action
   end
 
   # Other scopes may use custom stacks.
