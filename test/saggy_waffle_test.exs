@@ -1,5 +1,6 @@
 defmodule SoggyWaffleTest do
   use ExUnit.Case
+  import ExUnit.CaptureLog
 
   describe "rain?/2" do
     test "success: gets forecasts, returns true for imminent rain" do
@@ -23,6 +24,17 @@ defmodule SoggyWaffleTest do
 
       assert SoggyWaffle.rain?(expected_city, now, weather_fn_double)
       assert_received {:get_forecast_called, ^expected_city}
+    end
+
+    describe "rain?/2" do
+      test "success: gets forecasts, returns true for imminent rain" do
+        log =
+          capture_log(fn ->
+            SoggyWaffle.rain?("Los Angeles", DateTime.utc_now())
+          end)
+
+        assert log =~ "Getting forecast for city: Los Angeles"
+      end
     end
   end
 end

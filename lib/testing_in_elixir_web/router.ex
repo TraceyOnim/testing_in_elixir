@@ -19,6 +19,7 @@ defmodule TestingInElixirWeb.Router do
 
     get "/", PageController, :home
     post "/perform_action", PerformActionController, :perform_action
+    post "/create_article", CreateArticleController, :create
   end
 
   # Other scopes may use custom stacks.
