@@ -36,5 +36,31 @@ defmodule SoggyWaffleTest do
         assert log =~ "Getting forecast for city: Los Angeles"
       end
     end
+
+    describe "rain?/2" do
+      test "success: gets forecasts, returns true for imminent rain" do
+        stub(SoggyWaffle.WeatherAPIMock, :get_forecast, fn city ->
+          Logger.info("Getting forecast for city: #{city}")
+
+          response = %{
+            "list" => [
+              %{
+                "dt" => DateTime.to_unix(DateTime.utc_now()) + _seconds = 60,
+                "weather" => [%{"id" => _thunderstorm = 231}]
+              }
+            ]
+          }
+
+          {:ok, response}
+        end)
+
+        log =
+          capture_log(fn ->
+            assert SoggyWaffle.rain?("Los Angeles", DateTime.utc_now())
+          end)
+
+        assert log =~ "Getting forecast for city: Los Angeles"
+      end
+    end
   end
 end
